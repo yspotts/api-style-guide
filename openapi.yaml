@@ -1,0 +1,329 @@
+openapi: 3.0.1
+info:
+  title: Clusters Admin API
+  description: The Clusters Admin API manages clusters and regions registered to Elastic Cloud platform.
+  version: 0.1.0
+paths:
+
+  /admin/v2/platform/regions:
+    post:
+      summary: Create a region
+      operationId: createRegion
+      requestBody:
+        description: The region to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Region'
+      responses:
+        '201':
+          description: The created region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+    get:
+      summary: List regions
+      operationId: listRegions
+      responses:
+        '200':
+          description: The regions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+
+  /admin/v2/platform/regions/{id}:
+    get:
+      summary: Get a region
+      operationId: getRegion
+      parameters:
+        - name: id
+          in: path
+          description: ID of the region
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+    put:
+      summary: Update a region
+      operationId: updateRegion
+      parameters:
+        - name: id
+          in: path
+          description: ID of the region
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Specification of the region to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Region'
+      responses:
+        '200':
+          description: The updated region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+    delete:
+      summary: Delete a region
+      operationId: deleteRegion
+      parameters:
+        - name: id
+          in: path
+          description: ID of the region
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Region deleted
+
+  /admin/v2/platform/clusters:
+    post:
+      summary: Create a cluster information resource
+      operationId: createCluster
+      requestBody:
+        description: Cluster
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cluster'
+      responses:
+        '201':
+          description: The created cluster.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+    get:
+      summary: List clusters
+      operationId: listClusters
+      responses:
+        '200':
+          description: The clusters list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterList'
+
+  /admin/v2/platform/clusters/{id}:
+    put:
+      summary: Update a cluster
+      operationId: updateCluster
+      parameters:
+        - name: id
+          in: path
+          description: ID of the cluster
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Cluster
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cluster'
+      responses:
+        '200':
+          description: The updated cluster.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+    get:
+      summary: Get a cluster
+      operationId: getCluster
+      parameters:
+        - name: id
+          in: path
+          description: ID of the cluster
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The cluster.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+    delete:
+      summary: Delete a cluster
+      operationId: deleteCluster
+      parameters:
+        - name: id
+          in: path
+          description: ID of the cluster
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cluster deleted
+
+components:
+  schemas:
+
+    RegionID:
+      type: string
+
+    Region:
+      type: object
+      required:
+        - id
+        - cloud_service_provider
+        - internal
+        - hardware_profiles
+      properties:
+        id:
+          x-go-type: RegionID
+          type: string
+          description: Unique human-readable identifier for a region.
+        cloud_service_provider:
+          type: string
+        internal:
+          type: boolean
+          description: Specifies whether the region is internal (admin-facing only).
+        hardware_profiles:
+          type: array
+          description: List of HardwareProfiles available in all K8s clusters for this region.
+          items:
+            $ref: '#/components/schemas/HardwareProfile'
+
+    ClusterList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Cluster'
+
+    ClusterID:
+      type: string
+
+    Cluster:
+      type: object
+      required:
+        - id
+        - region_id
+        - host
+        - domain_url
+        - schedulable
+        - credentials_path
+      properties:
+        id:
+          x-go-type: ClusterID
+          type: string
+        region_id:
+          type: string
+        host:
+          type: string
+        domain_url:
+          type: string
+        schedulable:
+          type: boolean
+        credentials_path:
+          type: string
+
+    HardwareProfileID:
+      type: string
+
+    HardwareProfile:
+      type: object
+      required:
+        - id
+        - internal
+        - availability_zones
+        - memory_increments
+        - memory_cpu_ratio
+      properties:
+        id:
+          x-go-type: HardwareProfileID
+          type: string
+          description: Identifier for the HardwareProfile. Unique within the region.
+        description:
+          type: string
+          description: Information to describe the HardwareProfile.
+        internal:
+          type: boolean
+          description: Specifies whether the HardwareProfile is internal (admin-facing only).
+        availability_zones:
+          type: array
+          description: List of availability zone names in which that HardwareProfile is available.
+          items:
+            type: string
+        memory_increments:
+          type: array
+          description: List of RAM increments allocatable by machines tagged with this HardwareProfile.
+          items:
+            type: string
+        memory_cpu_ratio:
+          type: number
+          format: double
+          description: Multiplier from a RAM quantity (Gi) to a CPU quantity.
+        applications:
+          $ref: '#/components/schemas/HardwareProfileApplications'
+
+    HardwareProfileApplications:
+      type: object
+      properties:
+        elasticsearch:
+          type: object
+          description: Per Elasticsearch application component name.
+          additionalProperties:
+            $ref: '#/components/schemas/HardwareProfileElasticsearchAppComponent'
+        kibana:
+          $ref: '#/components/schemas/HardwareProfileKibanaApp'
+
+    HardwareProfileElasticsearchAppComponent:
+      type: object
+      description: HardwareProfile resource requirements specific to Elasticsearch application components.
+      required:
+        - enabled
+        - storage_class
+        - memory_storage_ratio
+      properties:
+        enabled:
+          type: boolean
+          description: Whether the application component can be hosted on machines with that HardwareProfile.
+        default:
+          type: boolean
+          description: Whether the HardwareProfile is the default for that particular type of application component.
+        storage_class:
+          type: string
+          description: Kubernetes storage class.
+          x-faker: music.genre
+        memory_storage_ratio:
+          type: number
+          format: double
+          x-faker:
+            datatype.number:
+              min: 37
+              max: 100
+          description: Multiplier from a RAM quantity to a storage quantity.
+
+    HardwareProfileKibanaApp:
+      type: object
+      description: HardwareProfile resource requirements specific to Kibana.
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+          description: Whether Kibana can be hosted on machines with that HardwareProfile.
+        default:
+          type: boolean
+          description: Whether the HardwareProfile is the default for Kibana applications.
